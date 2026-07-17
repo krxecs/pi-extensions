@@ -1,0 +1,6 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+
+# Changesets: pending release notes are committed; generated package changelogs are tracked
