@@ -220,7 +220,7 @@ importers:
         specifier: ^7.0.2
         version: 7.0.2
 
-  packages/hello:
+  packages/todo:
     devDependencies:
       '@earendil-works/pi-ai':
         specifier: 0.80.10

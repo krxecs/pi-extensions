@@ -15,7 +15,7 @@ pi-extensions/
 ├── .changeset/             # changesets versioning
 ├── scripts/setup.mjs       # registers extensions in ~/.pi/agent/settings.json
 └── packages/
-    └── hello/              # one package per extension
+    └── todo/               # one package per extension (multi-item todo tool)
         ├── package.json    # name, "pi": { "extensions": ["./src/index.ts"] }
         ├── tsconfig.json
         ├── tsdown.config.ts # builds dist/ (ESM + d.mts)
@@ -35,8 +35,8 @@ This works three ways:
 
 - **Local dev**: `pnpm setup` adds each `packages/<name>` directory to
   `~/.pi/agent/settings.json` `extensions:[]`. Reload with `/reload`.
-- **Local install**: `pi install ./packages/hello`
-- **Published**: `pi install npm:@krxecs/pi-hello` (after `pnpm release`)
+- **Local install**: `pi install ./packages/todo`
+- **Published**: `pi install npm:@krxecs/pi-todo` (after `pnpm release`)
 
 `tsdown` still builds `dist/` (ESM + `.d.mts`) as a compile-time check and a
 library entry point, but Pi does not require it.
@@ -59,7 +59,7 @@ matching runtimes automatically when the local versions do not match.
 
 ## Adding a new extension
 
-1. Copy `packages/hello` to `packages/<your-ext>`.
+1. Copy `packages/todo` to `packages/<your-ext>`.
 2. Edit its `package.json`: unique `name` (e.g. `@krxecs/pi-<your-ext>`),
    update the `description`, and confirm `"pi": { "extensions": ["./src/index.ts"] }`.
 3. Implement `src/index.ts` (export a default factory `(pi: ExtensionAPI) => void`).

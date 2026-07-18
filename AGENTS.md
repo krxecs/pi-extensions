@@ -20,7 +20,7 @@ pi-extensions/
 ├── .changeset/             # Changesets versioning + config
 ├── scripts/setup.mjs       # registers packages in ~/.pi/agent/settings.json
 ├── packages/
-│   └── <ext>/              # one package per extension (copy of hello/)
+│   └── <ext>/              # one package per extension (copy of todo/)
 │       ├── package.json    # name, "pi": { "extensions": ["./src/index.ts"] }
 │       ├── tsconfig.json   # extends ../../tsconfig.base.json
 │       ├── tsdown.config.ts# builds dist/ (ESM + .d.mts), never bundles peers
@@ -66,7 +66,7 @@ Published/runtime `engines.node` is `>=20`. CI uses Node 26.
 
 ## Adding a new extension
 
-1. Copy `packages/hello` to `packages/<your-ext>`.
+1. Copy `packages/todo` to `packages/<your-ext>`.
 2. Edit its `package.json`: unique scoped name (`@krxecs/pi-<your-ext>`),
    description, and keep `"pi": { "extensions": ["./src/index.ts"] }`.
 3. Implement `src/index.ts` exporting a default factory
