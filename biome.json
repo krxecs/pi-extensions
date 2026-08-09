@@ -11,5 +11,17 @@
   },
   "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "linter": { "enabled": true, "rules": { "preset": "recommended" } },
+  "overrides": [
+    {
+      "includes": ["**/*.test.ts", "**/*.spec.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noNonNullAssertion": "off"
+          }
+        }
+      }
+    }
+  ],
   "javascript": { "formatter": { "quoteStyle": "double", "semicolons": "always" } }
 }
