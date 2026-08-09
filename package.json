@@ -4,7 +4,7 @@
   "private": true,
   "description": "Personal Pi extensions monorepo (pnpm workspaces)",
   "type": "module",
-  "packageManager": "pnpm@11.13.1",
+  "packageManager": "pnpm@11.16.0",
   "engines": {
     "node": ">=20"
   },
@@ -16,7 +16,7 @@
     },
     "packageManager": {
       "name": "pnpm",
-      "version": "11.13.1",
+      "version": "11.16.0",
       "onFail": "download"
     }
   },
@@ -27,13 +27,10 @@
     "lint": "biome check .",
     "lint:ci": "biome ci",
     "format": "biome format --write .",
-    "changeset": "changeset",
-    "version": "changeset version",
-    "release": "pnpm build && changeset publish"
+    "release": "pnpm build && pnpm publish -r --provenance"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.4",
-    "@changesets/cli": "^2.31.1",
     "typescript": "^7.0.2"
   }
 }
