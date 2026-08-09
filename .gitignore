@@ -4,3 +4,4 @@ dist/
 .DS_Store
 
 # Changesets: pending release notes are committed; generated package changelogs are tracked
+pnpm-publish-summary.json

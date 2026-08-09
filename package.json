@@ -27,7 +27,7 @@
     "lint": "biome check .",
     "lint:ci": "biome ci",
     "format": "biome format --write .",
-    "release": "pnpm build && pnpm publish -r --provenance"
+    "release": "pnpm build && pnpm publish -r --provenance --report-summary"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.4",
