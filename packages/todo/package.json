@@ -2,6 +2,10 @@
   "name": "@pixt/todo",
   "version": "0.1.0",
   "description": "Pi extension: a multi-item todo tool (create, update, list, get, delete, clear) with a /todos command",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/krxecs/pi-extensions"
+  },
   "type": "module",
   "keywords": [
     "pi-package",
