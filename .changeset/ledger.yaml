@@ -1,0 +1,4 @@
+"@pixt/todo@0.1.0":
+  dir: packages/todo
+  intents:
+    - red-friends-rush
