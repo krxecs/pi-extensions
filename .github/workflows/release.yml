@@ -51,3 +51,24 @@ jobs:
       - name: Publish packages
         if: steps.version.outputs.release == 'true'
         run: pnpm release
+
+      - name: Tag published packages
+        if: steps.version.outputs.release == 'true'
+        shell: bash
+        run: |
+          test -f pnpm-publish-summary.json
+          tags=()
+          while IFS=$'\t' read -r name version; do
+            package="${name#*/}"
+            tag="${package}-v${version}"
+            if git show-ref --tags --verify --quiet "refs/tags/${tag}"; then
+              echo "::error::Tag already exists: ${tag}"
+              exit 1
+            fi
+            git tag --annotate "${tag}" --message "release ${tag}"
+            tags+=("${tag}")
+          done < <(jq -r '.publishedPackages[] | [.name, .version] | @tsv' pnpm-publish-summary.json)
+
+          if ((${#tags[@]})); then
+            git push origin "${tags[@]}"
+          fi
