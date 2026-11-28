@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { RpcClient } from "@earendil-works/pi-coding-agent";
 
 const packageDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const { default: extension } = await import(path.join(packageDir, "dist/index.mjs"));
@@ -80,7 +81,21 @@ async function fixture(responseStatus = 200) {
   };
 }
 
-async function runTool(fixture) {
+async function within(promise, milliseconds, message) {
+  let timer;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error(message)), milliseconds);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function runTool(fixture, signal) {
   const previous = process.env.PI_CODING_AGENT_DIR;
   process.env.PI_CODING_AGENT_DIR = fixture.agentDir;
   let tool;
@@ -94,7 +109,7 @@ async function runTool(fixture) {
     return await tool.execute(
       "smoke",
       { prompt: "Reply BASELINE_OK without calling tools." },
-      undefined,
+      signal,
       undefined,
       {
         cwd: fixture.directory,
@@ -215,6 +230,37 @@ test("an accepted RPC prompt that fails at the provider is not reported as succe
     assert.notEqual(result.details.stopReason, "stop");
     assert.equal(project.requests.length, 1);
   } finally {
+    await project.close();
+  }
+});
+
+test("a stalled RPC command cannot prevent cancellation", { timeout: 10000 }, async () => {
+  const project = await fixture();
+  const original = RpcClient.prototype.getState;
+  const controller = new AbortController();
+  let reached;
+  const entered = new Promise((resolve) => {
+    reached = resolve;
+  });
+  let client;
+  RpcClient.prototype.getState = function () {
+    client = this;
+    reached();
+    return new Promise(() => {});
+  };
+  try {
+    const resultPromise = runTool(project, controller.signal);
+    await within(entered, 5000, "getState was not reached");
+    controller.abort();
+    const result = await within(resultPromise, 2000, "Tool did not stop a stalled command");
+    assert.equal(result.details.status, "failed");
+    assert.equal(result.details.settled, false);
+    assert.equal(result.isError, true);
+    assert.match(result.details.error, /cancelled or deadline exceeded/);
+  } finally {
+    RpcClient.prototype.getState = original;
+    controller.abort();
+    await client?.stop();
     await project.close();
   }
 });
