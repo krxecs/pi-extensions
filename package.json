@@ -28,6 +28,7 @@
     "setup": "node scripts/setup.mjs",
     "build": "pnpm -r --filter \"./packages/*\" run build",
     "typecheck": "pnpm -r --filter \"./packages/*\" run typecheck",
+    "test": "pnpm -r --filter \"./packages/*\" run test",
     "lint": "biome check .",
     "lint:ci": "biome ci",
     "format": "biome format --write .",

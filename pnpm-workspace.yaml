@@ -8,7 +8,12 @@ allowBuilds:
   protobufjs: false
   rolldown: true
 minimumReleaseAgeExclude:
-  - '@earendil-works/pi-agent-core@0.80.10'
-  - '@earendil-works/pi-ai@0.80.10'
-  - '@earendil-works/pi-coding-agent@0.80.10'
-  - '@earendil-works/pi-tui@0.80.10'
+  - '@earendil-works/pi-agent-core@0.80.10 || 1.7.0'
+  - '@earendil-works/pi-ai@0.80.10 || 1.7.0'
+  - '@earendil-works/pi-coding-agent@0.80.10 || 1.7.0'
+  - '@earendil-works/pi-tui@0.80.10 || 1.7.0'
+  - '@earendil-works/pi-mcp@1.7.0'
+  - '@earendil-works/pi-codemode@1.7.0'
+  - '@gotgenes/pi-subagents@25.0.5'
+  - '@earendil-works/pi-schema@1.7.0'
+  - '@earendil-works/pi-telemetry@1.7.0'
