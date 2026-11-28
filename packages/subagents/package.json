@@ -1,10 +1,10 @@
 {
-  "name": "@pixt/multiagent",
+  "name": "@pixt/subagents",
   "version": "0.0.1",
   "description": "Pi RPC coding child feasibility baseline",
   "repository": { "type": "git", "url": "https://github.com/krxecs/pi-extensions" },
   "type": "module",
-  "keywords": ["pi-package", "pi-extension", "multiagent"],
+  "keywords": ["pi-package", "pi-extension", "subagents"],
   "license": "MIT",
   "engines": { "node": ">=20" },
   "main": "./dist/index.mjs",

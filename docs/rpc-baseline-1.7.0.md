@@ -1,6 +1,6 @@
 # Pi 1.7.0 RPC baseline for #16
 
-Run `pnpm install --frozen-lockfile && pnpm build && pnpm --filter @pixt/multiagent test` from the repo root. The test starts a real Pi RPC process in a temporary project against a local, deterministic OpenAI-compatible HTTP server. It needs no API key or external model. One test loads `packages/multiagent/src/index.ts` into a real Pi RPC process; the other real-process tests use `packages/multiagent/test/rpc-probe.mjs`. The installed extension registers no public tools; the test probe is not part of the published package or the #11 v1 subagent contract.
+Run `pnpm install --frozen-lockfile && pnpm build && pnpm --filter @pixt/subagents test` from the repo root. The test starts a real Pi RPC process in a temporary project against a local, deterministic OpenAI-compatible HTTP server. It needs no API key or external model. One test loads `packages/subagents/src/index.ts` into a real Pi RPC process; the other real-process tests use `packages/subagents/test/rpc-probe.mjs`. The installed extension registers no public tools; the test probe is not part of the published package or the #11 v1 subagent contract.
 
 Tested with Node 26.5.0, pnpm 11.16.0, `@earendil-works/pi-coding-agent`, `pi-ai`, `pi-tui`, `pi-agent-core`, `pi-mcp`, `pi-codemode`, `pi-schema`, and `pi-telemetry` at 1.7.0, `typebox` 1.3.27, and reference `@gotgenes/pi-subagents` 25.0.5. All companions and reference dependencies resolve in `pnpm-lock.yaml`. The reference is pinned but no parity comparison is claimed.
 
