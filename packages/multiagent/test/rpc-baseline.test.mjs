@@ -7,6 +7,7 @@ import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { RpcClient } from "@earendil-works/pi-coding-agent";
+import { runProbe } from "./rpc-probe.mjs";
 
 const packageDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const { default: extension } = await import(path.join(packageDir, "dist/index.mjs"));
@@ -95,32 +96,28 @@ async function within(promise, milliseconds, message) {
   }
 }
 
-async function runTool(fixture, signal) {
+async function runProbeInProject(fixture, signal) {
   const previous = process.env.PI_CODING_AGENT_DIR;
   process.env.PI_CODING_AGENT_DIR = fixture.agentDir;
-  let tool;
-  extension({
-    registerTool(value) {
-      tool = value;
-    },
-  });
-  assert.equal(tool?.name, "rpc_baseline");
   try {
-    return await tool.execute(
-      "smoke",
-      { prompt: "Reply BASELINE_OK without calling tools." },
+    return await runProbe({
+      cwd: fixture.directory,
+      prompt: "Reply BASELINE_OK without calling tools.",
       signal,
-      undefined,
-      {
-        cwd: fixture.directory,
-        sessionManager: { getSessionId: () => "parent-test" },
-      },
-    );
+    });
   } finally {
     if (previous === undefined) delete process.env.PI_CODING_AGENT_DIR;
     else process.env.PI_CODING_AGENT_DIR = previous;
   }
 }
+
+test("installed extension does not expose the feasibility probe as a Pi tool", () => {
+  extension({
+    registerTool(tool) {
+      assert.fail(`Unexpected public tool: ${tool.name}`);
+    },
+  });
+});
 
 test("pinned Pi 1.7.0 RPC child settles after a correlated prompt in a temporary project", {
   timeout: 60000,
@@ -129,7 +126,7 @@ test("pinned Pi 1.7.0 RPC child settles after a correlated prompt in a temporary
   assert.equal(manifest.devDependencies["@gotgenes/pi-subagents"], "25.0.5");
   const project = await fixture();
   try {
-    const result = await runTool(project);
+    const result = await runProbeInProject(project);
     assert.equal(result.details.status, "completed");
     assert.equal(result.details.disposition, "started");
     assert.equal(result.details.settled, true);
@@ -154,6 +151,8 @@ test("real Pi JSONL matches command IDs and settles after prompt acceptance", {
       "rpc",
       "--no-session",
       "--no-extensions",
+      "--extension",
+      path.join(packageDir, "src/index.ts"),
       "--no-mcp",
       "--no-context-files",
       "--provider",
@@ -222,7 +221,7 @@ test("an accepted RPC prompt that fails at the provider is not reported as succe
 }, async () => {
   const project = await fixture(400);
   try {
-    const result = await runTool(project);
+    const result = await runProbeInProject(project);
     assert.equal(result.details.disposition, "started");
     assert.equal(result.details.settled, true);
     assert.equal(result.details.status, "failed");
@@ -249,7 +248,7 @@ test("a stalled RPC command cannot prevent cancellation", { timeout: 10000 }, as
     return new Promise(() => {});
   };
   try {
-    const resultPromise = runTool(project, controller.signal);
+    const resultPromise = runProbeInProject(project, controller.signal);
     await within(entered, 5000, "getState was not reached");
     controller.abort();
     const result = await within(resultPromise, 2000, "Tool did not stop a stalled command");
