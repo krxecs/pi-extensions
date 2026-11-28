@@ -25,6 +25,7 @@ export async function runProbe({ cwd, prompt, signal }) {
   let text = "";
   let stopReason;
   let errorMessage;
+  let finalToolError;
   let resolveSettlement;
   const settlement = new Promise((resolve) => {
     resolveSettlement = resolve;
@@ -37,6 +38,14 @@ export async function runProbe({ cwd, prompt, signal }) {
         .join("");
       stopReason = event.message.stopReason;
       errorMessage = event.message.errorMessage;
+    }
+    if (event.type === "message_end" && event.message.role === "toolResult") {
+      finalToolError = event.message.isError
+        ? event.message.content
+            .filter((part) => part.type === "text")
+            .map((part) => part.text)
+            .join("") || "Final tool failed"
+        : undefined;
     }
     if (event.type === "agent_settled") {
       settled = true;
@@ -70,15 +79,24 @@ export async function runProbe({ cwd, prompt, signal }) {
     unsubscribe();
     await client.stop();
   }
-  const status = transportError || !settled || stopReason !== "stop" ? "failed" : "completed";
+  const status =
+    transportError || !settled || stopReason !== "stop" || errorMessage || finalToolError
+      ? "failed"
+      : "completed";
   const details = {
     status,
     disposition,
     settled,
     text,
     ...(stopReason ? { stopReason } : {}),
-    ...(errorMessage || transportError || (!settled && disposition !== "handled")
-      ? { error: errorMessage ?? transportError ?? "Child did not settle before deadline" }
+    ...(errorMessage || finalToolError || transportError || (!settled && disposition !== "handled")
+      ? {
+          error:
+            errorMessage ||
+            finalToolError ||
+            transportError ||
+            "Child did not settle before deadline",
+        }
       : {}),
   };
   return { details, ...(status === "failed" ? { isError: true } : {}) };

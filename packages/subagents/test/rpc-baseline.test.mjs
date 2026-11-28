@@ -166,6 +166,7 @@ test("real Pi JSONL matches command IDs and settles after prompt acceptance", {
       stdio: ["pipe", "pipe", "pipe"],
     },
   );
+  const closed = new Promise((resolve) => child.once("close", resolve));
   try {
     const records = await new Promise((resolve, reject) => {
       let pending = Buffer.alloc(0);
@@ -212,6 +213,7 @@ test("real Pi JSONL matches command IDs and settles after prompt acceptance", {
   } finally {
     child.stdin.end();
     child.kill("SIGTERM");
+    await closed;
     await project.close();
   }
 });
@@ -232,6 +234,72 @@ test("an accepted RPC prompt that fails at the provider is not reported as succe
     await project.close();
   }
 });
+
+for (const { name, messages, error } of [
+  {
+    name: "final assistant error",
+    messages: [
+      {
+        role: "assistant",
+        content: [{ type: "text", text: "Done" }],
+        stopReason: "stop",
+        errorMessage: "Assistant failed",
+      },
+    ],
+    error: "Assistant failed",
+  },
+  {
+    name: "final tool error followed by assistant stop",
+    messages: [
+      { role: "toolResult", isError: true, content: [{ type: "text", text: "Tool failed" }] },
+      { role: "assistant", content: [{ type: "text", text: "Done" }], stopReason: "stop" },
+    ],
+    error: "Tool failed",
+  },
+  {
+    name: "final tool error without text followed by assistant stop",
+    messages: [
+      { role: "toolResult", isError: true, content: [] },
+      { role: "assistant", content: [{ type: "text", text: "Done" }], stopReason: "stop" },
+    ],
+    error: "Final tool failed",
+  },
+]) {
+  test(`settled RPC probe fails on ${name}`, async () => {
+    const originals = Object.fromEntries(
+      ["onEvent", "start", "getState", "prompt", "stop"].map((method) => [
+        method,
+        RpcClient.prototype[method],
+      ]),
+    );
+    RpcClient.prototype.onEvent = function (listener) {
+      this.fixtureListener = listener;
+      return () => {};
+    };
+    RpcClient.prototype.start = async () => {};
+    RpcClient.prototype.getState = async () => ({});
+    RpcClient.prototype.prompt = async function () {
+      for (const message of messages) this.fixtureListener({ type: "message_end", message });
+      this.fixtureListener({ type: "agent_settled" });
+      return "started";
+    };
+    RpcClient.prototype.stop = async () => {};
+    try {
+      const result = await runProbe({ cwd: process.cwd(), prompt: "fixture" });
+      assert.equal(result.details.disposition, "started");
+      assert.equal(result.details.settled, true);
+      assert.equal(result.details.stopReason, "stop");
+      assert.equal(result.details.text, "Done");
+      assert.equal(result.details.status, "failed");
+      assert.equal(result.details.error, error);
+      assert.equal(result.isError, true);
+    } finally {
+      for (const [method, original] of Object.entries(originals)) {
+        RpcClient.prototype[method] = original;
+      }
+    }
+  });
+}
 
 test("a stalled RPC command cannot prevent cancellation", { timeout: 10000 }, async () => {
   const project = await fixture();
